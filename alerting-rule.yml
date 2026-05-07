@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: flask-app-alerts
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  groups:
+  - name: flask-app
+    rules:
+    - alert: FlaskAppDown
+      expr: absent(up{job="flask-app"}) or up{job="flask-app"} == 0
+      for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Flask app is DOWN"
+        description: "The Flask app has been unreachable for more than 2 minutes."
