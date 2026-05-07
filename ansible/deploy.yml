@@ -5,23 +5,20 @@
     image: "{{ image }}"
   tasks:
     - name: Create namespace if not exists
-      kubernetes.core.k8s:
-        state: present
-        definition:
-          apiVersion: v1
-          kind: Namespace
-          metadata:
-            name: flask-app
+      command: kubectl create namespace flask-app --dry-run=client -o yaml
+      register: ns_yaml
 
-    - name: Deploy Flask application
-      kubernetes.core.k8s:
-        state: present
-        definition: "{{ lookup('template', 'k8s/deployment.yml') | replace('DOCKER_IMAGE_PLACEHOLDER', image) }}"
+    - name: Apply namespace
+      shell: kubectl create namespace flask-app --dry-run=client -o yaml | kubectl apply -f -
+
+    - name: Apply Kubernetes deployment with image
+      shell: >
+        sed 's|DOCKER_IMAGE_PLACEHOLDER|{{ image }}|g'
+        /var/jenkins_home/workspace/flask-devops-pipeline/k8s/deployment.yml
+        | kubectl apply -f -
 
     - name: Wait for deployment rollout
-      kubernetes.core.k8s_rollout_status:
-        name: flask-app
-        namespace: flask-app
-        kind: Deployment
-        timeout: 120
-  
+      command: >
+        kubectl rollout status deployment/flask-app
+        --namespace=flask-app
+        --timeout=120s

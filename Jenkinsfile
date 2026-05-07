@@ -103,9 +103,6 @@ pipeline {
         stage('Ansible Deploy') {
             steps {
                 sh '''
-                            ansible-galaxy collection install -r ansible/requirements.yml
-            ansible-playbook -i ansible/inventory.ini ansible/deploy.yml -e image=boukamcha27/flask-devops-app:12
-
                     ansible-playbook -i ansible/inventory.ini \
                       ansible/deploy.yml \
                       -e "image=$DOCKER_IMAGE:$DOCKER_TAG"
