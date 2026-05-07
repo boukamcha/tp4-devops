@@ -14,6 +14,7 @@ def health():
     return jsonify({"status": "healthy"})
 
 if __name__ == '__main__':
-    # debug=False in production, read from environment variable
     debug_mode = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'
-    app.run(host='0.0.0.0', port=5000, debug=debug_mode)
+    # Bind to localhost only, let Kubernetes handle external exposure
+    host = os.environ.get('FLASK_HOST', '127.0.0.1')
+    app.run(host=host, port=5000, debug=debug_mode)
