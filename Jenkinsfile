@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         SONAR_TOKEN  = credentials('sonar-token')
-        DOCKER_IMAGE = "boukamcha27/flask-devops-app"
+        DOCKER_IMAGE = "YOUR_DOCKERHUB_USERNAME/flask-devops-app"
         DOCKER_TAG   = "${BUILD_NUMBER}"
     }
 
@@ -11,9 +11,7 @@ pipeline {
 
         // ─── EXERCISE 1: CI ───────────────────────────────────────────
         stage('Checkout') {
-            steps {
-                checkout scm
-            }
+            steps { checkout scm }
         }
 
         stage('Install Dependencies') {
@@ -60,18 +58,18 @@ pipeline {
         // ─── EXERCISE 2: CD ARTEFACTS ─────────────────────────────────
         stage('Docker Build') {
             steps {
-                sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
+                sh 'docker build -t $DOCKER_IMAGE:$DOCKER_TAG .'
             }
         }
 
         stage('Trivy Scan') {
             steps {
-                sh """
+                sh '''
                     trivy image \
                       --severity HIGH,CRITICAL \
                       --exit-code 0 \
-                      ${DOCKER_IMAGE}:${DOCKER_TAG}
-                """
+                      $DOCKER_IMAGE:$DOCKER_TAG
+                '''
             }
         }
 
@@ -89,14 +87,42 @@ pipeline {
                 }
             }
         }
+
+        // ─── EXERCISE 3: DEPLOY ───────────────────────────────────────
+        stage('Terraform Init & Apply') {
+            steps {
+                dir('terraform') {
+                    sh '''
+                        terraform init
+                        terraform apply -auto-approve
+                    '''
+                }
+            }
+        }
+
+        stage('Ansible Deploy') {
+            steps {
+                sh '''
+                    ansible-playbook -i ansible/inventory.ini \
+                      ansible/deploy.yml \
+                      -e "image=$DOCKER_IMAGE:$DOCKER_TAG"
+                '''
+            }
+        }
+
+        stage('Smoke Test') {
+            steps {
+                sh '''
+                    sleep 20
+                    curl -f http://$(minikube ip):30080/health
+                    echo "Smoke test passed!"
+                '''
+            }
+        }
     }
 
     post {
-        success {
-            echo 'Pipeline passed!'
-        }
-        failure {
-            echo 'Pipeline failed. Check the logs.'
-        }
+        success { echo 'Full pipeline passed! App is live.' }
+        failure { echo 'Pipeline failed. Check the logs.' }
     }
 }

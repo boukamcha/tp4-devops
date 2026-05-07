@@ -1,0 +1,26 @@
+---
+- name: Deploy Flask app to Kubernetes
+  hosts: local
+  vars:
+    image: "{{ image }}"
+  tasks:
+    - name: Create namespace if not exists
+      command: kubectl create namespace flask-app --dry-run=client -o yaml | kubectl apply -f -
+
+    - name: Replace image placeholder in deployment
+      command: >
+        sed 's|DOCKER_IMAGE_PLACEHOLDER|{{ image }}|g'
+        /var/jenkins_home/workspace/flask-devops-pipeline/k8s/deployment.yml
+      register: deployment_content
+
+    - name: Apply Kubernetes deployment
+      shell: >
+        sed 's|DOCKER_IMAGE_PLACEHOLDER|{{ image }}|g'
+        /var/jenkins_home/workspace/flask-devops-pipeline/k8s/deployment.yml
+        | kubectl apply -f -
+
+    - name: Wait for rollout
+      command: >
+        kubectl rollout status deployment/flask-app
+        --namespace=flask-app
+        --timeout=120s
