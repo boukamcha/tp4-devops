@@ -2,11 +2,14 @@ pipeline {
     agent any
 
     environment {
-        SONAR_TOKEN = credentials('sonar-token')
+        SONAR_TOKEN  = credentials('sonar-token')
+        DOCKER_IMAGE = "boukamcha27/flask-devops-app"
+        DOCKER_TAG   = "${BUILD_NUMBER}"
     }
 
     stages {
 
+        // ─── EXERCISE 1: CI ───────────────────────────────────────────
         stage('Checkout') {
             steps {
                 checkout scm
@@ -37,10 +40,10 @@ pipeline {
                 withSonarQubeEnv('SonarQube') {
                     sh '''
                         sonar-scanner \
-                        -Dsonar.projectKey=flask-devops-app \
-                        -Dsonar.sources=. \
-                        -Dsonar.host.url=http://sonarqube:9000 \
-                        -Dsonar.login=${SONAR_TOKEN}
+                          -Dsonar.projectKey=flask-devops-app \
+                          -Dsonar.sources=. \
+                          -Dsonar.host.url=http://sonarqube:9000 \
+                          -Dsonar.login=${SONAR_TOKEN}
                     '''
                 }
             }
@@ -53,14 +56,47 @@ pipeline {
                 }
             }
         }
+
+        // ─── EXERCISE 2: CD ARTEFACTS ─────────────────────────────────
+        stage('Docker Build') {
+            steps {
+                sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
+            }
+        }
+
+        stage('Trivy Scan') {
+            steps {
+                sh """
+                    trivy image \
+                      --severity HIGH,CRITICAL \
+                      --exit-code 0 \
+                      ${DOCKER_IMAGE}:${DOCKER_TAG}
+                """
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh """
+                        echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin
+                        docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
+                    """
+                }
+            }
+        }
     }
 
     post {
         success {
-            echo 'CI Pipeline passed!'
+            echo 'Pipeline passed!'
         }
         failure {
-            echo 'CI Pipeline failed. Check the logs.'
+            echo 'Pipeline failed. Check the logs.'
         }
     }
 }
