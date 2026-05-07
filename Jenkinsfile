@@ -66,13 +66,12 @@ pipeline {
             steps {
                 sh '''
                     trivy image \
-                      --severity HIGH,CRITICAL \
-                      --exit-code 0 \
-                      $DOCKER_IMAGE:$DOCKER_TAG
+                    --severity HIGH,CRITICAL \
+                    --exit-code 0 \
+                    $DOCKER_IMAGE:$DOCKER_TAG
                 '''
             }
         }
-
         stage('Docker Push') {
             steps {
                 withCredentials([usernamePassword(
