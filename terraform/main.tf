@@ -31,7 +31,7 @@ resource "kubernetes_resource_quota" "app_quota" {
       "requests.cpu"    = "2"
       "requests.memory" = "512Mi"
       "limits.cpu"      = "4"
-      "limits.memory"   = "2GMi"
+      "limits.memory"   = "2Gi"
     }
   }
 }
