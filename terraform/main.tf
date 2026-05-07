@@ -28,10 +28,10 @@ resource "kubernetes_resource_quota" "app_quota" {
   }
   spec {
     hard = {
-      "requests.cpu"    = "500m"
-      "requests.memory" = "256Mi"
-      "limits.cpu"      = "1"
-      "limits.memory"   = "512Mi"
+      "requests.cpu"    = "2"
+      "requests.memory" = "512Mi"
+      "limits.cpu"      = "4"
+      "limits.memory"   = "2GMi"
     }
   }
 }
