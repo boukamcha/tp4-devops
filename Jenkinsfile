@@ -114,7 +114,9 @@ pipeline {
             steps {
                 sh '''
                     sleep 20
-                    curl -f http://$(minikube ip):30080/health
+                    MINIKUBE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
+                    echo "Minikube IP: $MINIKUBE_IP"
+                    curl -f http://$MINIKUBE_IP:30080/health
                     echo "Smoke test passed!"
                 '''
             }
