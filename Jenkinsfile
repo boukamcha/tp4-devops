@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         SONAR_TOKEN  = credentials('sonar-token')
-        DOCKER_IMAGE = "YOUR_DOCKERHUB_USERNAME/flask-devops-app"
+        DOCKER_IMAGE = "boukamcha27/flask-devops-app"
         DOCKER_TAG   = "${BUILD_NUMBER}"
     }
 
