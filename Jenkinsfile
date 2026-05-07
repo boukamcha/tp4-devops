@@ -68,10 +68,11 @@ pipeline {
                     trivy image \
                     --severity HIGH,CRITICAL \
                     --exit-code 0 \
+                    --skip-files "*/terraform-provider-*" \
                     $DOCKER_IMAGE:$DOCKER_TAG
                 '''
             }
-        }
+        }        
         stage('Docker Push') {
             steps {
                 withCredentials([usernamePassword(

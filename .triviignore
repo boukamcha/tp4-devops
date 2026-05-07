@@ -1,0 +1,17 @@
+# Terraform provider binary - not part of our application
+# These vulnerabilities are in the HashiCorp Kubernetes provider
+# and cannot be fixed by us directly
+CVE-2026-33186
+CVE-2025-68121
+CVE-2025-22874
+CVE-2025-47907
+CVE-2025-58183
+CVE-2025-61726
+CVE-2025-61728
+CVE-2025-61729
+CVE-2026-25679
+CVE-2026-32280
+CVE-2026-32281
+CVE-2026-32283
+CVE-2026-35469
+CVE-2025-30153
